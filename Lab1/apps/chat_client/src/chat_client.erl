@@ -34,27 +34,27 @@ terminate(_Reason, _State) ->
 %% Gen server callbacks
 %% ===================================================================
 
-handle_call({auth_client}, _From, {ServerNodeName, Username, Password}) ->
+handle_call({auth_client}, _From, State = {ServerNodeName, Username, Password}) ->
   lager:info("ServerNodeName: ~p; Username: ~p; Password: ~p", [ServerNodeName, Username, Password]),
 
   {?SERVER, ServerNodeName} ! {auth_client, Username, Password, node()},
-  {reply, ok, {ServerNodeName, Username, Password}}.
+  {reply, ok, State}.
 
-handle_cast({send_public_message, Message}, {ServerNodeName, Username, Password}) ->
+handle_cast({send_public_message, Message}, State = {ServerNodeName, Username, Password}) ->
   {?SERVER, ServerNodeName} ! {process_public_message, Username, Password, Message},
-  {noreply, {ServerNodeName, Username, Password}};
+  {noreply, State};
 
-handle_cast({send_private_message, RecipientUserName, Message}, {ServerNodeName, Username, Password}) ->
+handle_cast({send_private_message, RecipientUserName, Message}, State = {ServerNodeName, Username, Password}) ->
   {?SERVER, ServerNodeName} ! {process_private_message, Username, Password, RecipientUserName, Message},
-  {noreply, {ServerNodeName, Username, Password}};
+  {noreply, State};
 
-handle_cast({get_message_from_server, Sender, Username, Password, ServerNode, Message}, _State) ->
+handle_cast({get_message_from_server, Sender, Message}, State = {ServerNodeName, Username, Password}) ->
   lager:info("~s: ~s~n", [Sender, Message]),
-  {noreply, {ServerNode, Username, Password}}.  
+  {noreply, State}.  
 
-handle_info({get_message_from_server, Sender, Username, Password, ServerNode, Message}, _State) ->
-  spawn(gen_server, cast, [?CLIENT, {get_message_from_server, Sender, Username, Password, ServerNode, Message}]),
-  {noreply , ok};
+handle_info({get_message_from_server, Sender, Message}, State = {ServerNodeName, Username, Password}) ->
+  handle_cast({get_message_from_server, Sender, Message}, State),
+  {noreply , State};
 handle_info(_Info, _State) ->
   lager:error("Unhandled message passing to client found!~nINFO:~p~nSTATE:~p", [_Info, _State]),
   {noreply , ok}.
@@ -65,7 +65,7 @@ handle_info(_Info, _State) ->
 
 login() ->
   lager:info("LOGING IN..."),
-  {ok} = gen_server:call(?CLIENT, {auth_client}),
+  ok = gen_server:call(?CLIENT, {auth_client}),
   lager:info("LOGGED IN!").
 
 send_public_message(Message) ->

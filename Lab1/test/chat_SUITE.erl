@@ -27,15 +27,20 @@ init_per_suite(Config) ->
     net_kernel:start('client1@127.0.0.1'),
     application:set_env(chat_client, server, 'server@127.0.0.1'),
     application:set_env(chat_client, username, "Saras"),
+    % by default, when starting an applicaiton, the environment is reset
+    % add flag persistent to make environment variable persistent
     application:set_env(chat_client, password, "123"),
+    
+    % you can copy the start nodes methods form paxoid, then pass the the chat_client/chat_server as a parameter
+
     {ok, _} = application:ensure_all_started(chat_client),
     {ok, _} = application:ensure_all_started(chat_server),
     
     Config.
 
 end_per_suite(_Config) ->
-    {ok, _} = applicaiton:stop(chat_client),
-    {ok, _} = application:stop(chat_server),
+    ok = application:stop(chat_client),
+    ok = application:stop(chat_server),
     _Config.
 
 test_auth(_Config) ->
