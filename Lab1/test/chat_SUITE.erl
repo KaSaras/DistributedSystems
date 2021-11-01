@@ -80,7 +80,8 @@ test_send_private_message(Config) ->
     % Same principle, would capture terminal output with ct:capture_start, capture_get and capture_stop, but slave output is not captured
     ok.
 %%% ============================================================================
-%%% Helper functions.
+%%% Helper functions. Taken from the CT test cases used for PAXOID:
+%%% https://github.com/erisata/paxoid/blob/master/test/paxoid_SUITE.erl
 %%% ============================================================================
 
 start_client_node(ClientShortNodeName, EnvVars) ->
