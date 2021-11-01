@@ -9,14 +9,14 @@
 %% ===================================================================
 %% Supervisor API
 %% ===================================================================
-start_link([ChatClient, Username, Password]) ->
-    lager:info("STARTING CHAT CLIENT SUPERVISOR...~nClient: ~p UserName: ~p Password: ~p", [ChatClient, Username, Password]),
-    supervisor:start_link({local, ?MODULE}, ?MODULE, [ChatClient, Username, Password]).
+start_link([ServerNodeName, Username, Password]) ->
+    lager:info("STARTING CHAT CLIENT SUPERVISOR...~nClient: ~p UserName: ~p Password: ~p", [ServerNodeName, Username, Password]),
+    supervisor:start_link({local, ?MODULE}, ?MODULE, [ServerNodeName, Username, Password]).
 
 %% ===================================================================
 %% Supervisor callbacks
 %% ===================================================================
-init([ChatClient, Username, Password]) ->
+init([ServerNodeName, Username, Password]) ->
 
     RestartStrategy = one_for_one,
     MaxRestarts = 3,
@@ -47,7 +47,7 @@ init([ChatClient, Username, Password]) ->
         {
             chat_client,
             start_link,
-            [ChatClient, Username, Password]
+            [ServerNodeName, Username, Password]
         },
         ChildRestart,
         Shutdown,

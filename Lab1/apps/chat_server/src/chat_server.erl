@@ -19,6 +19,7 @@ start_link() ->
   {ok, Pid} = gen_server:start_link(?MODULE, [], []),
   register(?SERVER, Pid),
   lager:info("Started the server genserver on:~p~n", [Pid]),
+  lager:info("On node ~p", [node()]),
   {ok, Pid}.
 
 init(_Args) ->
@@ -29,10 +30,12 @@ handle_call({auth_client, Username, Password, Node}, _From, State = #state{users
   
   NewUsers = case lists:keyfind(Username, 1, Users) of
     {Username, Password, _Node} -> 
+      io:format("Reconnecting user ~p...~n", [Username]),
       lager:info("Reconnecting user ~p...", [Username]),
       lager:info("Updating their node information..."),
       lists:keyreplace({Username, Password}, 1, Users, {{Username, Password}, Node});
     false ->
+      io:format("New user ~p is connecting to the server...~n", [Username]),
       lager:info("New user ~p is connecting to the server...", [Username]),
       lager:info("Adding them to list of known users..."),
       [{Username, Password, Node} | Users]
@@ -48,7 +51,9 @@ handle_call({auth_client, Username, Password, Node}, _From, State = #state{users
 handle_cast({process_public_message, Username, Password, Message}, State = #state{users = Users}) ->
   case lists:keyfind(Username, 1, Users) of
     {Username, Password, _Node}  -> process_public_message(Username, Users, Message);
-    false -> lager:warning("Unauthorized public message access attempt for: ~p", [Username])
+    false -> 
+      io:format("Unauthorized public message access attempt for: ~p~n", [Username]),
+      lager:warning("Unauthorized public message access attempt for: ~p", [Username])
   end,
   {noreply, State};
 handle_cast({process_private_message, Username, Password, RecipientUsername, Message}, State = #state{users = Users}) ->
@@ -58,7 +63,9 @@ handle_cast({process_private_message, Username, Password, RecipientUsername, Mes
       case lists:keyfind(RecipientUsername, 1, Users) of
         {RecipientUsername, _RecipientPassword, RecipientNode} -> 
           process_private_message(Username, RecipientUsername, RecipientNode, Message);
-        _ -> lager:warning("Recipient user ~p not found...", [RecipientUsername])
+        _ -> 
+          io:format("Recipient user ~p not found...~n", [RecipientUsername]),
+          lager:warning("Recipient user ~p not found...", [RecipientUsername])
       end;
     false -> lager:warning("Unauthorized public message access attempt for: ~p", [Username])
   end,
@@ -81,6 +88,7 @@ handle_info(_Info, _State) ->
 %% Non-api functions
 
 process_public_message(Username, Users, Message) ->
+  io:format("[PUBLIC] ~p: ~p~n", [Username, Message]),
   lager:info("[PUBLIC] ~p: ~p~n", [Username, Message]),
   % foldr will take a function and iterate over every entry in the ets database 
   % the following methods are: foldr(fun (Elem::T, IncomingAccumulator) -> outgoingAccumulator, InitialAccumulatorValue, ListToGoThrough :: [T])
@@ -99,5 +107,7 @@ process_public_message(Username, Users, Message) ->
 
 process_private_message(Username, RecipientUsername, RecipientNode, Message) ->
   {?CLIENT, RecipientNode} ! {get_message_from_server, Username, Message},
+  io:format("[PRIVATE: FROM - ~p] : ~p~n", [Username, Message]),
+  io:format("[PRIVATE: TO - ~p] : ~p~n", [RecipientUsername, Message]),
   lager:info("[PRIVATE: FROM - ~p] : ~p~n", [Username, Message]),
   lager:info("[PRIVATE: TO - ~p] : ~p~n", [RecipientUsername, Message]).
