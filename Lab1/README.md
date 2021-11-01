@@ -13,9 +13,13 @@ Additionally, ct:capture doesn't capture I/O that is sent to master from the sla
 $ rebar3 shell --apps chat_server start --name server@127.0.0.1
 ## start client1 node via rebar3 shell
 $ rebar3 shell --apps chat_client start --name client1@127.0.0.1 --config client.config
-(client1@127.0.0.1)1> chat_client:login().
 ## start client2 node via rebar3 shell
 $ rebar3 shell --apps chat_client start --name client2@127.0.0.1 --config client2.config
-(client2@127.0.0.1)1> chat_client:login().
+## authenticate client
+(client1@127.0.0.1)1> chat_client:login().
+## send public message 
+(client1@127.0.0.1)1> chat_client:send_public_message("MESSAGE").
+## send private message 
+(client1@127.0.0.1)1> chat_client:send_private_message("RECIPIENT_USER_NAME", "MESSAGE").
 ## run tests
 rebar3 ct
