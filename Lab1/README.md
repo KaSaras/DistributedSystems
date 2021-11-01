@@ -1,8 +1,3 @@
-# DistributedSystems
-Laboratory works for the distributed systems lecture
-
-
-
 # LAB 1
 
 ## REQUIRED
