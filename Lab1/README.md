@@ -14,7 +14,7 @@ $ rebar3 shell --apps chat_server start --name server@127.0.0.1
 ## start client1 node via rebar3 shell
 $ rebar3 shell --apps chat_client start --name client1@127.0.0.1 --config client.config
 (client1@127.0.0.1)1> chat_client:login().
-## start client1 node via rebar3 shell
+## start client2 node via rebar3 shell
 $ rebar3 shell --apps chat_client start --name client2@127.0.0.1 --config client2.config
 (client2@127.0.0.1)1> chat_client:login().
 ## run tests
