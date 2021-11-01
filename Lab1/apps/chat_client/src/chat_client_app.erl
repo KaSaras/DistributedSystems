@@ -20,7 +20,7 @@ start(_StartType, _StartArgs) ->
     {ok, Password} = application:get_env(password), 
     chat_client_sup:start_link([ServerNodeName, Username, Password]).
     
-stop(State) ->
-    io:format("Stopping chat client with state ~p~n", [State]),
-    lager:info("Stopping chat client with state ~p~n", [State]),
+stop(_State) ->
+    io:format("Stopping chat client application.~n"),
+    lager:info("Stopping chat client application."),
     ok.

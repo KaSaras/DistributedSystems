@@ -47,10 +47,15 @@ init_per_suite(Config) ->
     ct:pal("Result baby ~p", [Result]),
     [{client_nodes, [ClientNode1, ClientNode2]}, {server_node, [ServerNode]} | Config].
 
-end_per_suite(_Config) ->
-    % ok = application:stop(chat_client),
-    % ok = application:stop(chat_server),
-    _Config.
+end_per_suite(Config) ->
+    [ClientNode_1, ClientNode_2] = proplists:get_value(client_nodes,  Config),
+    [ServerNode] = proplists:get_value(server_node,  Config),
+
+    ok = rpc:call(ClientNode_1, application, stop, [chat_client]),
+    ok = rpc:call(ClientNode_2, application, stop, [chat_client]),
+    ok = rpc:call(ServerNode, application, stop, [chat_server]),
+    ok = stop_nodes([ClientNode_1, ClientNode_2, ServerNode]),
+    ok.
 
 % Pretty weak test case, since auth method does not take into account failed authentication
 % If call returns ok

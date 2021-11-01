@@ -17,7 +17,7 @@ start(_StartType, _StartArgs) ->
     io:format("Hehe HAHA!~n"),
     chat_server_sup:start_link().
 
-stop(State) ->
-    io:format("Stopping chat server with state ~p~n", [State]),
-    lager:info("Stopping chat server with state ~p~n", [State]),
+stop(_State) ->
+    io:format("Stopping chat server application.~n"),
+    lager:info("Stopping chat server application."),
     ok.
