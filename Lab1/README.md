@@ -8,7 +8,7 @@ Due to possible bug that you cannot capture I/O from lager, io:format was added 
 Additionally, ct:capture doesn't capture I/O that is sent to master from the slave nodes
 
 ## compile code in project directory
-~<path_to_project>/ChatServer$ rebar3 compile
+~<path_to_project>/Lab1$ rebar3 compile
 ## start server node via rebar3 shell
 $ rebar3 shell --apps chat_server start --name server@127.0.0.1
 ## start client1 node via rebar3 shell
