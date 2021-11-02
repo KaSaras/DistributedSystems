@@ -44,7 +44,8 @@ init_per_suite(Config) ->
     ct:pal("Client + Server Nodes: ~p, ~p, ~p~n",[ClientNode1, ClientNode2, ServerNode]),
     ct:pal("Config ~p~n", [Config]),
     Result = ct:capture_get(),
-    ct:pal("Result baby ~p", [Result]),
+    ct:pal("Result ~p", [Result]),
+    ct:capture_stop(),    
     [{client_nodes, [ClientNode1, ClientNode2]}, {server_node, [ServerNode]} | Config].
 
 end_per_suite(Config) ->
@@ -58,10 +59,7 @@ end_per_suite(Config) ->
     ok.
 
 % Pretty weak test case, since auth method does not take into account failed authentication
-% If call returns ok
 test_auth(Config) ->
-    
-    %Arrange
     [ClientNode_1, ClientNode_2] = proplists:get_value(client_nodes,  Config),
     % Slave nodes give all output to master, but we want to focus only on the slave node that has the server
     ct:capture_start(),
@@ -122,7 +120,7 @@ this_host() ->
     % IF your host name has - or _. E.g., mine was Sarunas-ThinkPad-...
     % Erlang will consider this an illegal hostname
     % {ok, ShortHostname} = inet:gethostname(),
-    % Gonna use loclahost
+    % Gonna use localhost
     ShortHostname = '127.0.0.1',
     {ok, #hostent{h_name = FullHostname}} = inet:gethostbyname(ShortHostname),
     FullHostname.
