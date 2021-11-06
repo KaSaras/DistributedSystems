@@ -11,7 +11,7 @@
 
 start(_StartType, _StartArgs) ->
     % Comment/Uncomment loglevel in order to show to console all lager output
-    lager:set_loglevel(lager_console_backend, none),
+    % lager:set_loglevel(lager_console_backend, none),
     lager:info("STARTING SERVER APPLICAITON"),
     chat_server_sup:start_link().
 

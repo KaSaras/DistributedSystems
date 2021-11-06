@@ -11,7 +11,7 @@
 
 start(_StartType, _StartArgs) ->
     % Comment/Uncomment loglevel in order to show to console all lager output
-    lager:set_loglevel(lager_console_backend, none),
+    % lager:set_loglevel(lager_console_backend, none),
     % lager:info("STARTING CHAT CLIENT APPLICATION..."),
     % Args = [Val || {_Key, Val} <-application:get_all_env()],
     {ok, ServerNodeName} = application:get_env(server),
