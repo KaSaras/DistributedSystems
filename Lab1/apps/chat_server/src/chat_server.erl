@@ -90,7 +90,7 @@ handle_info(_Info, _State) ->
 
 process_public_message(Username, Users, Message) ->
   lager:info("[PUBLIC] ~p: ~p~n", [Username, Message]),
-  % foldr will take a function and iterate over every entry in the ets database 
+  % foldr will take a function and iterate over every entry 
   % the following methods are: foldr(fun (Elem::T, IncomingAccumulator) -> outgoingAccumulator, InitialAccumulatorValue, ListToGoThrough :: [T])
   lists:foldr(
     fun(Entry, Acc) ->
