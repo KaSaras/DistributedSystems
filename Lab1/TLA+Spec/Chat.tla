@@ -20,7 +20,7 @@ AuthClientExists(auth_info) == \E <<clientUsername, clientPassword>> \in SERVER_
                                     /\ auth_info[2] = clientPassword
 
 RemoveExistingAuthClient(auth_info) == \E authClient \in SERVER_STATE:
-                                    (auth_info[2] = authClient[2] /\ auth_info[3] = authClient[3])
+                                    (auth_info[1] = authClient[1] /\ auth_info[2] = authClient[2])
 
 Authenticate(auth_info) == 
       /\ IF AuthClientExists(auth_info)
@@ -37,5 +37,5 @@ Spec ==  Init /\ [][Next]_<<SERVER_STATE,AUTH_INFO_SET>>
 
 =============================================================================
 \* Modification History
-\* Last modified Sat Nov 06 14:04:10 EET 2021 by kasaras
+\* Last modified Sat Nov 06 14:11:15 EET 2021 by kasaras
 \* Created Tue Nov 02 17:19:58 EET 2021 by Sarunas
