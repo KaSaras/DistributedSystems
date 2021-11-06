@@ -12,8 +12,6 @@
 -define(CLIENT, chat_client).
 -define(SERVER, chat_server).
 
-%-record(client, {authorized}).
-
 %% ===================================================================
 %% Gen server API and internal methods
 %% ===================================================================
@@ -51,15 +49,14 @@ handle_cast({send_private_message, RecipientUserName, Message}, State = {ServerN
 
 handle_cast({get_message_from_server, Sender, Message}, State) ->
   lager:info("~s: ~s~n", [Sender, Message]),
-  io:format("~s: ~s~n", [Sender, Message]),
   {noreply, State}.  
 
 handle_info({get_message_from_server, Sender, Message}, State) ->
   handle_cast({get_message_from_server, Sender, Message}, State),
   {noreply , State};
-handle_info(_Info, _State) ->
-  lager:error("Unhandled message passing to client found!~nINFO:~p~nSTATE:~p", [_Info, _State]),
-  {noreply , ok}.
+handle_info(_Info, State) ->
+  lager:error("Unhandled message passing to client found!~nINFO:~p~nSTATE:~p", [_Info, State]),
+  {noreply , State}.
 
 %% ===================================================================
 %% Client API
@@ -68,10 +65,12 @@ handle_info(_Info, _State) ->
 login() ->
   lager:info("LOGING IN..."),
   ok = gen_server:call(?CLIENT, {auth_client}),
-  lager:info("LOGGED IN!").
+  lager:info("LOGGED IN!"),
+  {noreply, ok}.
 
 send_public_message(Message) ->
-  gen_server:cast(?CLIENT, {send_public_message, Message}).
+  gen_server:cast(?CLIENT, {send_public_message, Message}),
+  {noreply, ok}.
 
 send_private_message(RecipientUserName, Message) ->
   gen_server:cast(?CLIENT, {send_private_message, RecipientUserName, Message}),

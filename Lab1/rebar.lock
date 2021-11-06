@@ -3,6 +3,10 @@
  {<<"lager">>,
   {git,"https://github.com/erlang-lager/lager",
        {ref,"fae53399253da622afde3bf5fb5ff124b7d887fa"}},
+  0},
+ {<<"meck">>,
+  {git,"https://github.com/eproxus/meck",
+       {ref,"cc47aab4b64a46a5409c1a93353d44a367b41454"}},
   0}]}.
 [
 {pkg_hash,[

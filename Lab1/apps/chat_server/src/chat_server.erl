@@ -8,12 +8,13 @@
 -define(SERVER, chat_server).
 -define(CLIENT, chat_client).
 
-% -record(state, {
-%     users = #[]
-% }).
 -record(state, {
     users = [] :: [{string(), string(), atom()}]
 }).
+
+%% ===================================================================
+%% Gen server API
+%% ===================================================================
 
 start_link() ->
   {ok, Pid} = gen_server:start_link(?MODULE, [], []),
@@ -24,20 +25,20 @@ start_link() ->
 
 init(_Args) ->
   {ok, #state{users = []}}.
-  % {ok, #data{users = #{}}}.
+
+%% ===================================================================
+%% Gen server callbacks
+%% ===================================================================
 
 handle_call({auth_client, Username, Password, Node}, _From, State = #state{users = Users}) ->
-  
   NewUsers = case lists:keyfind(Username, 1, Users) of
     {Username, Password, _Node} -> 
-      io:format("Reconnecting user ~p...~n", [Username]),
       lager:info("Reconnecting user ~p...", [Username]),
       lager:info("Updating their node information..."),
       lists:keyreplace({Username, Password}, 1, Users, {{Username, Password}, Node});
     false ->
-      io:format("New user ~p is connecting to the server...~n", [Username]),
       lager:info("New user ~p is connecting to the server...", [Username]),
-      lager:info("Adding them to list of known users..."),
+      lager:info("Adding them to record of known users..."),
       [{Username, Password, Node} | Users]
   end,
   % NewUsers = case lists:member({Username}, Users) of
@@ -52,7 +53,6 @@ handle_cast({process_public_message, Username, Password, Message}, State = #stat
   case lists:keyfind(Username, 1, Users) of
     {Username, Password, _Node}  -> process_public_message(Username, Users, Message);
     false -> 
-      io:format("Unauthorized public message access attempt for: ~p~n", [Username]),
       lager:warning("Unauthorized public message access attempt for: ~p", [Username])
   end,
   {noreply, State};
@@ -64,7 +64,6 @@ handle_cast({process_private_message, Username, Password, RecipientUsername, Mes
         {RecipientUsername, _RecipientPassword, RecipientNode} -> 
           process_private_message(Username, RecipientUsername, RecipientNode, Message);
         _ -> 
-          io:format("Recipient user ~p not found...~n", [RecipientUsername]),
           lager:warning("Recipient user ~p not found...", [RecipientUsername])
       end;
     false -> lager:warning("Unauthorized public message access attempt for: ~p", [Username])
@@ -85,10 +84,11 @@ handle_info(_Info, _State) ->
   lager:error("Unhandled message passing to client found!~nINFO:~p~nSTATE:~p", [_Info, _State]),
   {noreply, ok}.
 
-%% Non-api functions
+%% ===================================================================
+%% Internal methods
+%% ===================================================================
 
 process_public_message(Username, Users, Message) ->
-  io:format("[PUBLIC] ~p: ~p~n", [Username, Message]),
   lager:info("[PUBLIC] ~p: ~p~n", [Username, Message]),
   % foldr will take a function and iterate over every entry in the ets database 
   % the following methods are: foldr(fun (Elem::T, IncomingAccumulator) -> outgoingAccumulator, InitialAccumulatorValue, ListToGoThrough :: [T])
@@ -107,7 +107,5 @@ process_public_message(Username, Users, Message) ->
 
 process_private_message(Username, RecipientUsername, RecipientNode, Message) ->
   {?CLIENT, RecipientNode} ! {get_message_from_server, Username, Message},
-  io:format("[PRIVATE: FROM - ~p] : ~p~n", [Username, Message]),
-  io:format("[PRIVATE: TO - ~p] : ~p~n", [RecipientUsername, Message]),
   lager:info("[PRIVATE: FROM - ~p] : ~p~n", [Username, Message]),
   lager:info("[PRIVATE: TO - ~p] : ~p~n", [RecipientUsername, Message]).

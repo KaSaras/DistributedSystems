@@ -20,7 +20,6 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-
     RestartStrategy = one_for_one,
     MaxRestarts = 3,
     MaxSecondsBetweenRestarts = 5,

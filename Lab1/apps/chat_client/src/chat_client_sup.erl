@@ -17,7 +17,6 @@ start_link([ServerNodeName, Username, Password]) ->
 %% Supervisor callbacks
 %% ===================================================================
 init([ServerNodeName, Username, Password]) ->
-
     RestartStrategy = one_for_one,
     MaxRestarts = 3,
     MaxSecondsBetweenRestarts = 5,

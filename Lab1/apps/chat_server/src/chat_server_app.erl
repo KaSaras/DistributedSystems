@@ -10,14 +10,11 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    % Comment out loglevel in order to show to console all lager output
-    % Note, best to comment out all io:format texts as well
+    % Comment/Uncomment loglevel in order to show to console all lager output
     lager:set_loglevel(lager_console_backend, none),
     lager:info("STARTING SERVER APPLICAITON"),
-    io:format("Hehe HAHA!~n"),
     chat_server_sup:start_link().
 
 stop(_State) ->
-    io:format("Stopping chat server application.~n"),
     lager:info("Stopping chat server application."),
     ok.
