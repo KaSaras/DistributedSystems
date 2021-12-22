@@ -194,9 +194,9 @@ send_message_all_but_current(ClientUsername, AuthUserList, SenderUsername, Messa
               {?CLIENT, RecipientNode} ! {receive_message, SenderUsername, Message, SenderTimestamp},
               Acc % Do nothing with the accumulator.
       end
-  end,
-  0,
-  AuthUserList
+    end,
+    0,
+    AuthUserList
   ).
 % create sublist without a specific user
 sub_list_without_tuple_by_key(List, ValueOfKey) ->
