@@ -71,34 +71,25 @@ handle_cast(
   _State = #state{clientInfo = ClientInfo = {_, Username, _}, authUsers = Users, messageHistory = MessageHistory}
 ) ->
   MessageTime = erlang:system_time(),
-  lists:foldr(
-    fun(Entry, Acc) ->
-      {RecipientUserName, RecipientNode} = Entry,
-      case Username of
-        RecipientUserName -> Acc; % Do nothing
-        _ -> {?CLIENT, RecipientNode} ! {receive_message, Username, Message, MessageTime},
-             Acc % Do nothing with the accumulator.
-      end
-    end,
-    0,
-    Users
-  ),
+  
+  send_message_to_other_nodes(Username, Users, Username, Message, MessageTime),
+  
   NewState = #state{
     clientInfo = ClientInfo,
     authUsers = Users,
     messageHistory = [{Username, Message, MessageTime} | MessageHistory]
   },
   {noreply, NewState};
-% Node re-sends message to other nodes when the message history is empty
-% This broadcast is called by handle_info, so no need to update state
+% Node sends received message to other nodes when the message history is empty
+% No need to update state, since it's updated in handle_info, which this method is called from
 handle_cast(
   {broadcast, SenderUsername, Message, SenderTimestamp},
   _State = #state{clientInfo = {_,Username,_}, authUsers = Users, messageHistory = []}
 ) ->
 
-  send_message_all_but_current(Username, Users, SenderUsername, Message, SenderTimestamp),
+  send_message_to_other_nodes(Username, Users, SenderUsername, Message, SenderTimestamp),
   {noreply, _State};
-% Node sends received message to others when there is existing message history
+% Node sends received message to other nodes when there is existing message history
 % No need to update state, since it's updated in handle_info, which this method is called from
 handle_cast(
   {broadcast, SenderUsername, Message, SenderTimestamp},
@@ -108,7 +99,7 @@ handle_cast(
   case lists:member({SenderUsername, Message, SenderTimestamp}, MessageHistory) of
     true -> true;
     false -> 
-      send_message_all_but_current(Username, Users, SenderUsername, Message, SenderTimestamp)
+      send_message_to_other_nodes(Username, Users, SenderUsername, Message, SenderTimestamp)
     end,
   {noreply, _State}.
 
@@ -183,8 +174,8 @@ broadcast(Message) ->
 %% ===================================================================
 %% Internal Methods
 %% ===================================================================
-% iterate and send message to users except for current node based on authenticated user list
-send_message_all_but_current(ClientUsername, AuthUserList, SenderUsername, Message, SenderTimestamp) ->
+% used to iterate and send message to users except for current node
+send_message_to_other_nodes(ClientUsername, AuthUserList, SenderUsername, Message, SenderTimestamp) ->
   lists:foldr(
     fun(Entry, Acc) ->
       {RecipientUserName, RecipientNode} = Entry,
@@ -201,4 +192,3 @@ send_message_all_but_current(ClientUsername, AuthUserList, SenderUsername, Messa
 % create sublist without a specific user
 sub_list_without_tuple_by_key(List, ValueOfKey) ->
   [ T || {K, _} = T <-  List, K =/= ValueOfKey].
-

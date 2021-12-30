@@ -9,7 +9,7 @@
 %macros for module names, would be more efficient to move them to a .hrl file for reusability
 -define(CLIENT, chat_client).
 -define(SERVER, chat_server).
--define(NUMBEROFNODES, 20).
+-define(NUMBEROFNODES, 10).
 -define(TEST_MESSAGE, "Howdy!").
 
 all() ->
@@ -19,21 +19,13 @@ all() ->
     ].
 
 init_per_suite(Config) ->
-    % To be able to run erlang distributed nodes, epmd has to be launched in -daemon mode
-    % otherwise, we won't be able to 
-    _ = os:cmd("epmd -daemon"),
-    % DOESN'T WORK
-    % case node() of
-    %     'nonode@nohost' -> net_kernel:start(['127.0.0.1', longnames]);
-    %     _               -> ok
-    % end,
-    % THIS WORKS 
+    os:cmd("epmd -daemon"),
+
     case node() of
         'nonode@nohost' -> net_kernel:start(['chat_SUITE@127.0.0.1', longnames]);
         _               -> ok
     end,
     {ok, _} = application:ensure_all_started(sasl),
-    % ct:pal will print and log in terminal in case test fail
     ct:pal("Starting cihldren nodes...~n"),
     
     ServerShortname = server,
@@ -84,12 +76,6 @@ end_per_suite(Config) ->
     ok.
 
 init_per_testcase(_TestCase, Config) -> 
-    % Slave nodes give all output to master (which don't happen quickly enough to be captured by ct:capture_get())
-    % We'll focus on the client and server nodes.
-    % Meck lets to mock a module
-    % Passing the passthrough flag keeps the module's original functionality
-    % no_link is used to unlink the process that was used to create the meck
-    % Without this, the meck is instantly created and terminated once init_per_testcase finishes.
     ClientNodes = proplists:get_value(client_nodes,  Config),
     [ServerNode] = proplists:get_value(server_node,  Config),
     {ResultList, []} = rpc:multicall(ClientNodes, meck, new, [chat_client, [passthrough, no_link]]),
@@ -106,8 +92,6 @@ end_per_testcase(_TestCase, Config) ->
     Config.
 
 test_auth(Config) ->
-
-
     SequenceList = lists:seq(1, ?NUMBEROFNODES),
     ServerEResult = [
         {
@@ -140,11 +124,6 @@ test_auth(Config) ->
 test_broadcast(Config) ->
     ClientNodes = proplists:get_value(client_nodes,  Config),
     SequenceList = lists:seq(1, ?NUMBEROFNODES),
-    % ServerEResult = [
-    %     {"Useris_" ++ erlang:integer_to_list(X), "123", erlang:list_to_atom("client" ++ erlang:integer_to_list(X) ++ "@127.0.0.1")} 
-    %     || X <- SequenceList
-    % ],
-    % [ServerNode] = proplists:get_value(server_node,  Config),
     MessageHistoryEResult = [
         {
             "Useris_" ++ erlang:integer_to_list(X),
@@ -168,12 +147,12 @@ test_broadcast(Config) ->
     end,
     ClientNodes),
     % Timer needed due to messages being re-sent between different nodes
-    timer:sleep(10000),
+    timer:sleep(20000),
     rpc:multicall(ClientNodes, meck, reset, [?CLIENT]),
     {R, _} = rpc:multicall(ClientNodes, ?CLIENT, get_message_history, []),
     ?assertEqual(?NUMBEROFNODES, erlang:length(lists:usort(lists:flatten(R)))),
     
-    % Sometimes passes, sometimes fails due to the rebroadcasting not finishing
+    % Sometimes passes, sometimes fails due to all clients not finishing processing the messages in time
     lists:foreach(fun(ClientMessageHistory) ->
         ClientMessageHistoryWithoutTimestamp = [
             {Usr, Msg} || {Usr, Msg, _Tmstmp} <- ClientMessageHistory
@@ -218,11 +197,6 @@ start_server_node(ServerShortNodeName) ->
 % Gets a hostname of the current node.
 % ============================================================================
 this_host() ->
-    % THIS WONT WORK
-    % IF your host name has - or _. E.g., mine was Sarunas-ThinkPad-...
-    % Erlang will consider this an illegal hostname
-    % {ok, ShortHostname} = inet:gethostname(),
-    % Gonna use localhost
     ShortHostname = '127.0.0.1',
     {ok, #hostent{h_name = FullHostname}} = inet:gethostbyname(ShortHostname),
     FullHostname.
