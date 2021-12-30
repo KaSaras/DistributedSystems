@@ -1,4 +1,4 @@
-# LAB 1
+# LAB 2
 
 ## REQUIRED
 sudo apt install ssh-askpass (believe it's for setting up the shortname@longname)
